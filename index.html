@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edvibe — Мои слова</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app" id="mainApp">
+    <header class="top-header">
+      <div class="top-bar">
+        <a href="#" class="logo" aria-label="Edvibe">
+          <span class="logo-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 4L22 14H10L16 4Z" fill="#33CCFF"/>
+              <path d="M10 14L16 24L22 14H10Z" fill="#FF9933"/>
+              <circle cx="16" cy="20" r="2" fill="#fff"/>
+            </svg>
+          </span>
+          <span class="logo-text">Edvibe</span>
+        </a>
+      </div>
+      <nav class="tabs" role="tablist" aria-label="Разделы обучения">
+        <button type="button" class="tab tab--active" role="tab" id="tab-learn" aria-selected="true" aria-controls="panel-words">К изучению</button>
+        <button type="button" class="tab" role="tab" id="tab-learned" aria-selected="false" aria-controls="panel-words">Выученные слова</button>
+      </nav>
+    </header>
+
+    <main class="main" id="panel-words" role="tabpanel" aria-labelledby="tab-learn">
+      <button type="button" class="btn-repetition" id="btnRepetition">Повторение</button>
+
+      <form class="add-form" id="addForm" autocomplete="off">
+        <div class="add-row">
+          <label class="sr-only" for="langPair">Направление перевода</label>
+          <select id="langPair" class="lang-select" name="langPair">
+            <option value="ru-en">RU → EN</option>
+            <option value="en-ru">EN → RU</option>
+            <option value="pl-en">PL → EN</option>
+            <option value="pl-ru">PL → RU</option>
+          </select>
+          <input
+            type="text"
+            id="wordInput"
+            class="word-input"
+            name="word"
+            placeholder="Добавить слово"
+            maxlength="200"
+          />
+          <button type="submit" class="btn-submit" aria-label="Добавить">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+        <input
+          type="text"
+          id="translationInput"
+          class="translation-input"
+          name="translation"
+          placeholder="Перевод"
+          maxlength="200"
+        />
+      </form>
+
+      <div class="list-toolbar">
+        <span class="total" id="totalLabel">Всего слов 0</span>
+        <label class="select-all">
+          <span>Выбрать всё</span>
+          <input type="checkbox" id="selectAll" />
+        </label>
+      </div>
+
+      <ul class="word-list" id="wordList" aria-live="polite"></ul>
+    </main>
+
+    <div class="selection-bar" id="selectionBar" hidden>
+      <button type="button" class="selection-bar__delete" id="btnDeleteSelected">
+        <span class="selection-bar__icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            <path d="M10 11v6M14 11v6"/>
+          </svg>
+        </span>
+        <span id="selectionBarLabel">Удалить выбранные</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mini-lesson overlay -->
+  <div class="lesson-overlay" id="lessonOverlay" hidden>
+    <div class="lesson-overlay__bg" aria-hidden="true"></div>
+    <div class="lesson-sheet" role="dialog" aria-modal="true" aria-labelledby="lessonTitle">
+      <button type="button" class="lesson-close" id="lessonClose" aria-label="Закрыть">×</button>
+
+      <!-- Setup -->
+      <div class="lesson-view" id="lessonSetup">
+        <div class="lesson-setup__icon" aria-hidden="true">🔥</div>
+        <h2 class="lesson-title" id="lessonTitle">Тренировка слов</h2>
+        <p class="lesson-sub" id="lessonSetupCount">Слов для изучения: 0</p>
+        <p class="lesson-prompt">Выберите количество слов</p>
+        <div class="lesson-counter">
+          <button type="button" class="lesson-counter__btn" id="lessonCountMinus" aria-label="Минус">−</button>
+          <span class="lesson-counter__value" id="lessonCountValue">5</span>
+          <button type="button" class="lesson-counter__btn" id="lessonCountPlus" aria-label="Плюс">+</button>
+        </div>
+        <p class="lesson-modes" id="lessonModesLine"><span aria-hidden="true">⚙</span> <span id="lessonModesText">4 этапа</span></p>
+        <button type="button" class="lesson-btn-primary" id="lessonStartBtn">Начать</button>
+      </div>
+
+      <!-- Step 1: flashcards -->
+      <div class="lesson-view" id="lessonStep1" hidden>
+        <div class="lesson-badge" id="badge1">ШАГ 1 ИЗ 4</div>
+        <p class="lesson-step-desc" id="lessonStep1Desc">Просмотр изучаемых слов</p>
+        <div class="lesson-dots" id="dots1" role="presentation"></div>
+        <div class="lesson-flashcard" id="flashcardBox">
+          <button type="button" class="lesson-flashcard__speak" id="s1Speak" aria-label="Прослушать">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          </button>
+          <p class="lesson-flashcard__word" id="s1Word"></p>
+          <p class="lesson-flashcard__trans" id="s1Trans" hidden></p>
+          <button type="button" class="lesson-flashcard__bar" id="s1RevealBar">Нажмите, чтобы увидеть перевод ☝️</button>
+        </div>
+        <div class="lesson-nav2">
+          <button type="button" class="lesson-btn-back" id="s1Back">← Назад</button>
+          <button type="button" class="lesson-btn-next" id="s1Next">Далее →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: multiple choice -->
+      <div class="lesson-view" id="lessonStep2" hidden>
+        <div class="lesson-badge" id="badge2">ШАГ 2 ИЗ 4</div>
+        <p class="lesson-step-desc" id="lessonStep2Desc">Выбор правильного перевода</p>
+        <div class="lesson-dots lesson-dots--5" id="dots2"></div>
+        <p class="lesson-mc-word" id="s2Prompt"></p>
+        <div class="lesson-mc-options" id="s2Options"></div>
+      </div>
+
+      <!-- Step 3: matching -->
+      <div class="lesson-view" id="lessonStep3" hidden>
+        <div class="lesson-badge" id="badge3">ШАГ 3 ИЗ 4</div>
+        <p class="lesson-step-desc" id="lessonStep3Desc">Сопоставление слова и перевода</p>
+        <div class="lesson-dots lesson-dots--5" id="dots3"></div>
+        <p class="lesson-match-hint" id="s3Hint"></p>
+        <div class="lesson-match" id="s3Grid"></div>
+      </div>
+
+      <!-- Step 4: letters -->
+      <div class="lesson-view" id="lessonStep4" hidden>
+        <div class="lesson-badge" id="badge4">ШАГ 4 ИЗ 4</div>
+        <p class="lesson-step-desc" id="lessonStep4Desc">Соберите слово из букв</p>
+        <div class="lesson-dots lesson-dots--5" id="dots4"></div>
+        <p class="lesson-letter-prompt" id="s4Prompt"></p>
+        <div class="lesson-slots" id="s4Slots"></div>
+        <div class="lesson-strikes" id="s4Strikes" aria-hidden="true">× × ×</div>
+        <div class="lesson-letter-bank" id="s4Bank"></div>
+        <div class="lesson-nav2">
+          <button type="button" class="lesson-btn-back" id="s4Clear">Очистить</button>
+          <button type="button" class="lesson-btn-next" id="s4Check">Проверить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
