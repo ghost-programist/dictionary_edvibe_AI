@@ -1,4 +1,12 @@
-const STORAGE_KEY = "word-trainer-v1";
+const HANDLE_DB = "word-trainer-file";
+const HANDLE_STORE = "handles";
+const HANDLE_KEY = "words-json";
+const FILE_TYPES = [
+  {
+    description: "JSON-словарь",
+    accept: { "application/json": [".json"] },
+  },
+];
 
 const els = {
   home: document.getElementById("home-view"),
@@ -17,9 +25,13 @@ const els = {
   taskTitle: document.getElementById("task-title"),
   remain: document.getElementById("remain-label"),
   taskRoot: document.getElementById("task-root"),
+  fileStatus: document.getElementById("file-status"),
+  openFile: document.getElementById("open-file"),
+  saveFile: document.getElementById("save-file"),
 };
 
-let words = loadWords();
+let words = [];
+let fileHandle = null;
 let tab = "unlearned";
 let session = null;
 
@@ -27,17 +39,133 @@ function uid() {
   return crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
 }
 
-function loadWords() {
+function idb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(HANDLE_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(HANDLE_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function loadHandle() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const db = await idb();
+    return await new Promise((resolve, reject) => {
+      const req = db.transaction(HANDLE_STORE).objectStore(HANDLE_STORE).get(HANDLE_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
   } catch {
-    return [];
+    return null;
   }
 }
 
-function saveWords() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+async function storeHandle(handle) {
+  try {
+    const db = await idb();
+    await new Promise((resolve, reject) => {
+      const req = db.transaction(HANDLE_STORE, "readwrite").objectStore(HANDLE_STORE).put(handle, HANDLE_KEY);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
+function parseWordList(data) {
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((item) => ({
+      id: String(item.id || uid()),
+      term: String(item.term || "").trim(),
+      translation: String(item.translation || "").trim(),
+      learned: Boolean(item.learned),
+    }))
+    .filter((item) => item.term && item.translation);
+}
+
+function setFileStatus(name) {
+  els.fileStatus.textContent = `Файл словаря: ${name}`;
+}
+
+async function ensurePermission(handle, mode = "readwrite") {
+  if (!handle.queryPermission || !handle.requestPermission) return true;
+  const options = { mode };
+  if ((await handle.queryPermission(options)) === "granted") return true;
+  return (await handle.requestPermission(options)) === "granted";
+}
+
+async function readFromHandle(handle) {
+  const file = await handle.getFile();
+  const text = (await file.text()).trim();
+  words = text ? parseWordList(JSON.parse(text)) : [];
+  setFileStatus(file.name);
+}
+
+async function writeToHandle(handle) {
+  const writable = await handle.createWritable();
+  await writable.write(`${JSON.stringify(words, null, 2)}\n`);
+  await writable.close();
+}
+
+function downloadWordsFile() {
+  const blob = new Blob([`${JSON.stringify(words, null, 2)}\n`], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "words.json";
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+async function saveWords() {
+  if (fileHandle && (await ensurePermission(fileHandle))) {
+    await writeToHandle(fileHandle);
+    return;
+  }
+  if (window.showSaveFilePicker) {
+    try {
+      fileHandle = await window.showSaveFilePicker({
+        suggestedName: "words.json",
+        types: FILE_TYPES,
+      });
+      await storeHandle(fileHandle);
+      await writeToHandle(fileHandle);
+      setFileStatus(fileHandle.name);
+      return;
+    } catch (error) {
+      if (error && error.name === "AbortError") return;
+    }
+  }
+  downloadWordsFile();
+}
+
+async function loadWords() {
+  fileHandle = await loadHandle();
+  if (fileHandle) {
+    try {
+      if (await ensurePermission(fileHandle, "readwrite")) {
+        await readFromHandle(fileHandle);
+        return;
+      }
+    } catch {
+      fileHandle = null;
+    }
+  }
+  try {
+    const response = await fetch("words.json", { cache: "no-store" });
+    if (response.ok) {
+      words = parseWordList(await response.json());
+      setFileStatus("words.json (откройте файл, чтобы записывать изменения)");
+      return;
+    }
+  } catch {
+    /* file:// or missing file */
+  }
+  words = [];
+  setFileStatus("не выбран");
 }
 
 function shuffle(items) {
@@ -95,23 +223,47 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
-els.form.addEventListener("submit", (event) => {
+els.openFile.addEventListener("click", async () => {
+  if (!window.showOpenFilePicker) {
+    els.fileStatus.textContent =
+      "Этот браузер не умеет открывать файл напрямую. Положите words.json рядом с сайтом.";
+    return;
+  }
+  try {
+    const [handle] = await window.showOpenFilePicker({ types: FILE_TYPES, multiple: false });
+    if (!(await ensurePermission(handle))) return;
+    fileHandle = handle;
+    await storeHandle(handle);
+    await readFromHandle(handle);
+    renderHome();
+  } catch (error) {
+    if (error && error.name !== "AbortError") {
+      els.fileStatus.textContent = "Не удалось открыть файл.";
+    }
+  }
+});
+
+els.saveFile.addEventListener("click", async () => {
+  await saveWords();
+});
+
+els.form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const term = els.term.value.trim();
   const translation = els.translation.value.trim();
   if (!term || !translation) return;
   words.unshift({ id: uid(), term, translation, learned: false });
-  saveWords();
+  await saveWords();
   els.form.reset();
   els.term.focus();
   renderHome();
 });
 
-els.list.addEventListener("click", (event) => {
+els.list.addEventListener("click", async (event) => {
   const btn = event.target.closest("[data-del]");
   if (!btn) return;
   words = words.filter((w) => w.id !== btn.dataset.del);
-  saveWords();
+  await saveWords();
   renderHome();
 });
 
@@ -454,11 +606,11 @@ function normalize(value) {
   return value.replaceAll("␣", " ").trim();
 }
 
-function finishSession() {
+async function finishSession() {
   if (session.mode === "unlearned") {
     const ids = new Set(session.items.map((w) => w.id));
     words = words.map((w) => (ids.has(w.id) ? { ...w, learned: true } : w));
-    saveWords();
+    await saveWords();
   }
   els.remain.textContent = "Осталось: 0";
   els.taskTitle.textContent = "Готово";
@@ -481,4 +633,4 @@ function finishSession() {
   });
 }
 
-renderHome();
+loadWords().then(renderHome);

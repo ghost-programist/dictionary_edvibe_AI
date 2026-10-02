@@ -71,6 +71,26 @@ body {
   box-shadow: var(--shadow);
 }
 
+.file-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.file-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+code {
+  color: var(--accent-2);
+}
+
 .add-form {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
@@ -394,8 +414,14 @@ input {
 @media (max-width: 700px) {
   .add-form,
   .match-board,
-  .study-top {
+  .study-top,
+  .file-bar {
     grid-template-columns: 1fr;
+  }
+
+  .file-bar {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .toolbar {

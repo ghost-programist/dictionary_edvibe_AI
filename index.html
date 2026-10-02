@@ -19,19 +19,26 @@
         <p class="eyebrow">Словарь и практика</p>
         <h1>Тренажёр слов</h1>
         <p class="lead">
-          Записывайте слова и перевод, учите пачками и повторяйте уже выученное.
+          Слова и переводы хранятся в файле <code>words.json</code>. Примеры не подставляются.
         </p>
       </header>
 
       <section id="home-view" class="panel">
+        <div class="file-bar">
+          <p id="file-status" class="hint">Файл словаря: не выбран</p>
+          <div class="file-actions">
+            <button id="open-file" class="btn ghost" type="button">Открыть words.json</button>
+            <button id="save-file" class="btn ghost" type="button">Сохранить файл</button>
+          </div>
+        </div>
         <form id="add-form" class="add-form" autocomplete="off">
           <label>
             Слово
-            <input id="term-input" type="text" placeholder="apple" required />
+            <input id="term-input" type="text" required />
           </label>
           <label>
             Перевод
-            <input id="translation-input" type="text" placeholder="яблоко" required />
+            <input id="translation-input" type="text" required />
           </label>
           <button type="submit" class="btn primary">Добавить</button>
         </form>
