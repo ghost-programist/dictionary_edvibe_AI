@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Тренажёр слов</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="bg-glow" aria-hidden="true"></div>
+    <main class="app">
+      <header class="hero">
+        <p class="eyebrow">Словарь и практика</p>
+        <h1>Тренажёр слов</h1>
+        <p class="lead">
+          Записывайте слова и перевод, учите пачками и повторяйте уже выученное.
+        </p>
+      </header>
+
+      <section id="home-view" class="panel">
+        <form id="add-form" class="add-form" autocomplete="off">
+          <label>
+            Слово
+            <input id="term-input" type="text" placeholder="apple" required />
+          </label>
+          <label>
+            Перевод
+            <input id="translation-input" type="text" placeholder="яблоко" required />
+          </label>
+          <button type="submit" class="btn primary">Добавить</button>
+        </form>
+
+        <div class="tabs" role="tablist">
+          <button class="tab is-active" data-tab="unlearned" type="button">
+            Невыученные <span id="unlearned-count" class="count">0</span>
+          </button>
+          <button class="tab" data-tab="learned" type="button">
+            Выученные <span id="learned-count" class="count">0</span>
+          </button>
+        </div>
+
+        <div class="toolbar">
+          <div class="learn-wrap">
+            <button id="learn-btn" class="btn primary" type="button" disabled>
+              Учить слова
+            </button>
+            <div id="count-menu" class="count-menu hidden" role="menu"></div>
+          </div>
+          <p id="list-hint" class="hint">Добавьте слова, чтобы начать учёбу.</p>
+        </div>
+
+        <ul id="word-list" class="word-list"></ul>
+      </section>
+
+      <section id="study-view" class="panel study hidden">
+        <div class="study-top">
+          <button id="exit-study" class="btn ghost" type="button">Выйти</button>
+          <p id="task-title" class="task-title">Задание 1</p>
+          <p id="remain-label" class="remain">Осталось: 0</p>
+        </div>
+        <div id="task-root" class="task-root"></div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
