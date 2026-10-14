@@ -18,6 +18,7 @@ const els = {
   unlearnedCount: document.getElementById("unlearned-count"),
   learnedCount: document.getElementById("learned-count"),
   learnBtn: document.getElementById("learn-btn"),
+  learnSelectedBtn: document.getElementById("learn-selected-btn"),
   countMenu: document.getElementById("count-menu"),
   hint: document.getElementById("list-hint"),
   list: document.getElementById("word-list"),
@@ -34,6 +35,7 @@ let words = [];
 let fileHandle = null;
 let tab = "unlearned";
 let session = null;
+const selectedWordIds = new Set();
 
 function uid() {
   return crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
@@ -183,10 +185,15 @@ function byTab(kind) {
 
 function renderHome() {
   const current = byTab(tab);
+  const selectedCurrent = current.filter((word) => selectedWordIds.has(word.id));
   els.unlearnedCount.textContent = byTab("unlearned").length;
   els.learnedCount.textContent = byTab("learned").length;
   els.learnBtn.textContent = tab === "learned" ? "Повторить" : "Учить слова";
   els.learnBtn.disabled = current.length === 0;
+  els.learnSelectedBtn.disabled = selectedCurrent.length === 0;
+  els.learnSelectedBtn.textContent = selectedCurrent.length
+    ? `Учить отмеченные (${selectedCurrent.length})`
+    : "Учить отмеченные";
   els.hint.textContent =
     current.length === 0
       ? tab === "learned"
@@ -205,6 +212,12 @@ function renderHome() {
     .map(
       (w) => `
       <li class="word-item">
+        <label class="word-check" title="Выбрать слово для тренировки">
+          <input type="checkbox" data-select="${escapeHtml(w.id)}" ${
+            selectedWordIds.has(w.id) ? "checked" : ""
+          } aria-label="Выбрать ${escapeHtml(w.term)}" />
+          <span aria-hidden="true">✓</span>
+        </label>
         <div>
           <strong>${escapeHtml(w.term)}</strong>
           <span>${escapeHtml(w.translation)}</span>
@@ -262,8 +275,17 @@ els.form.addEventListener("submit", async (event) => {
 els.list.addEventListener("click", async (event) => {
   const btn = event.target.closest("[data-del]");
   if (!btn) return;
+  selectedWordIds.delete(btn.dataset.del);
   words = words.filter((w) => w.id !== btn.dataset.del);
   await saveWords();
+  renderHome();
+});
+
+els.list.addEventListener("change", (event) => {
+  const checkbox = event.target.closest("[data-select]");
+  if (!checkbox) return;
+  if (checkbox.checked) selectedWordIds.add(checkbox.dataset.select);
+  else selectedWordIds.delete(checkbox.dataset.select);
   renderHome();
 });
 
@@ -283,6 +305,13 @@ els.learnBtn.addEventListener("click", (event) => {
   const options = uniqueCounts(pool.length);
   els.countMenu.innerHTML = `
     <p>Сколько слов взять в занятие?</p>
+    <form id="custom-count-form" class="custom-count">
+      <label for="custom-count">Любое количество от 1 до ${pool.length}</label>
+      <div>
+        <input id="custom-count" type="number" min="1" max="${pool.length}" value="${pool.length}" required />
+        <button class="btn primary" type="submit">Начать</button>
+      </div>
+    </form>
     <div class="count-options">
       ${options.map((n) => `<button type="button" data-count="${n}">${n}</button>`).join("")}
     </div>`;
@@ -293,6 +322,19 @@ els.countMenu.addEventListener("click", (event) => {
   const btn = event.target.closest("[data-count]");
   if (!btn) return;
   startSession(Number(btn.dataset.count));
+});
+
+els.countMenu.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const count = Number(document.getElementById("custom-count").value);
+  const max = byTab(tab).length;
+  if (!Number.isInteger(count) || count < 1 || count > max) return;
+  startSession(count);
+});
+
+els.learnSelectedBtn.addEventListener("click", () => {
+  const selected = byTab(tab).filter((word) => selectedWordIds.has(word.id));
+  if (selected.length) startSession(selected);
 });
 
 document.addEventListener("click", (event) => {
@@ -308,9 +350,10 @@ function uniqueCounts(max) {
   return [...set].sort((a, b) => a - b);
 }
 
-function startSession(count) {
-  const pool = shuffle(byTab(tab));
-  const selected = pool.slice(0, count);
+function startSession(countOrWords) {
+  const selected = Array.isArray(countOrWords)
+    ? shuffle(countOrWords)
+    : shuffle(byTab(tab)).slice(0, countOrWords);
   session = {
     mode: tab,
     items: selected,
@@ -375,7 +418,7 @@ function renderTask1() {
       <p class="prompt">Нажмите на слово, чтобы увидеть перевод</p>
       <p id="flip-word" class="big-word">${escapeHtml(word.term)}</p>
       <div class="actions">
-        <button id="next-1" class="btn primary" type="button" disabled>Дальше</button>
+        <button id="next-1" class="btn primary" type="button">Дальше</button>
       </div>
     </div>`;
   const flip = document.getElementById("flip-word");
@@ -384,7 +427,6 @@ function renderTask1() {
     revealed = !revealed;
     flip.textContent = revealed ? word.translation : word.term;
     flip.classList.toggle("revealed", revealed);
-    next.disabled = false;
   });
   next.addEventListener("click", nextInTask);
 }
@@ -453,14 +495,17 @@ function renderTask3() {
     <div class="match-board">
       <div class="match-col" id="left-col">
         ${left
-          .map((w) => `<button class="match-item" data-side="left" data-id="${w.id}" type="button">${escapeHtml(w.term)}</button>`)
+          .map(
+            (w) =>
+              `<button class="match-item" data-side="left" data-id="${w.id}" type="button">${escapeHtml(w.translation)}</button>`
+          )
           .join("")}
       </div>
       <div class="match-col" id="right-col">
         ${right
           .map(
             (w) =>
-              `<button class="match-item" data-side="right" data-id="${w.id}" type="button">${escapeHtml(w.translation)}</button>`
+              `<button class="match-item" data-side="right" data-id="${w.id}" type="button">${escapeHtml(w.term)}</button>`
           )
           .join("")}
       </div>
@@ -610,6 +655,7 @@ async function finishSession() {
   if (session.mode === "unlearned") {
     const ids = new Set(session.items.map((w) => w.id));
     words = words.map((w) => (ids.has(w.id) ? { ...w, learned: true } : w));
+    ids.forEach((id) => selectedWordIds.delete(id));
     await saveWords();
   }
   els.remain.textContent = "Осталось: 0";
