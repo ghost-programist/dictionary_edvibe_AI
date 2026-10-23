@@ -1,0 +1,92 @@
+[
+  {
+    "id": "83801be3-b813-4e02-9000-337208929c17",
+    "term": "kelner",
+    "translation": "официант",
+    "learned": true
+  },
+  {
+    "id": "9eab8d63-29bc-475b-ab2d-af7b62c1df46",
+    "term": "urzędnik",
+    "translation": "чиновник",
+    "learned": true
+  },
+  {
+    "id": "fbcbf4a7-4ff5-4c6b-9540-3219c82e4f68",
+    "term": "kierowca",
+    "translation": "водитель",
+    "learned": true
+  },
+  {
+    "id": "b9cd684a-dccb-44c0-94bd-19fee1286fbd",
+    "term": "dziennikarz",
+    "translation": "журналист",
+    "learned": true
+  },
+  {
+    "id": "5cc0efa0-d948-4899-bb74-8eafd0ad0b3a",
+    "term": "rolnik",
+    "translation": "фермер",
+    "learned": true
+  },
+  {
+    "id": "26dae1de-24cf-47a9-9f55-f0e76daa6842",
+    "term": "przyszły",
+    "translation": "будущий",
+    "learned": true
+  },
+  {
+    "id": "6c9e4e7b-ae52-44d8-a3b2-d61e42a15414",
+    "term": "zeszły",
+    "translation": "прошлый",
+    "learned": true
+  },
+  {
+    "id": "5a530f25-c5ce-4c12-9607-ce4cc3765c2d",
+    "term": "kromka",
+    "translation": "ломтик",
+    "learned": true
+  },
+  {
+    "id": "ddaf3bc4-62f6-474a-bcd3-7e6fb68222bb",
+    "term": "ratusz",
+    "translation": "ратуша",
+    "learned": true
+  },
+  {
+    "id": "16598f73-6390-4831-812b-cedca8630f67",
+    "term": "artykuły apożywcze",
+    "translation": "продукты питания",
+    "learned": true
+  },
+  {
+    "id": "66b82906-a3c2-4771-8b70-90d88ac6a564",
+    "term": "galeria handlowa",
+    "translation": "торговый центр",
+    "learned": true
+  },
+  {
+    "id": "b72a7d62-606d-4813-a12e-fbc31d80b9e1",
+    "term": "blok",
+    "translation": "панельный дом",
+    "learned": true
+  },
+  {
+    "id": "c6f4fdb5-89e7-467e-a8ae-738a20e071f3",
+    "term": "kamienica",
+    "translation": "многоквартирный дом",
+    "learned": true
+  },
+  {
+    "id": "c929e992-75f2-4c9b-84b2-70b6cef4b39a",
+    "term": "osiedle",
+    "translation": "поселение",
+    "learned": true
+  },
+  {
+    "id": "30695f08-2a42-4f4f-9c0a-9f0d5577dbe3",
+    "term": "skrzyżowanie",
+    "translation": "перекрёсток",
+    "learned": true
+  }
+]
