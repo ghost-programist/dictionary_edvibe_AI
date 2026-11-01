@@ -1,5 +1,101 @@
 [
   {
+    "id": "c2b6d1b2-1ea8-405f-8b5a-2a63f289d692",
+    "term": "wygodny",
+    "translation": "комфортный",
+    "learned": false
+  },
+  {
+    "id": "f812ab1d-d413-42b9-8b17-1a1db8565ed2",
+    "term": "na rogu",
+    "translation": "на углу",
+    "learned": false
+  },
+  {
+    "id": "bfa451e1-4996-4eb2-84b5-ba620e38309c",
+    "term": "umywalnik",
+    "translation": "умывальник в туалете",
+    "learned": false
+  },
+  {
+    "id": "c11c144e-a037-414f-8397-5e322c311f3b",
+    "term": "walizka",
+    "translation": "чемодан",
+    "learned": false
+  },
+  {
+    "id": "f4708a73-5cf2-4088-a288-3a49e6056a03",
+    "term": "zlew",
+    "translation": "раковина",
+    "learned": false
+  },
+  {
+    "id": "f9c31cb6-6099-442c-af4a-e3f541ceae11",
+    "term": "biurko",
+    "translation": "рабочий стол",
+    "learned": false
+  },
+  {
+    "id": "8385d4f2-bd43-48ab-ac76-0056aaee93f6",
+    "term": "kanapa",
+    "translation": "диван",
+    "learned": false
+  },
+  {
+    "id": "30ac5b17-00c6-4461-ad8b-e1b4acf41119",
+    "term": "regał",
+    "translation": "книжный шкаф",
+    "learned": false
+  },
+  {
+    "id": "bc677e2f-e3f7-4a29-bc32-6b14b0f6a66f",
+    "term": "fotel",
+    "translation": "Кресло",
+    "learned": false
+  },
+  {
+    "id": "c511cf8b-753b-4c73-b5cf-6c555ded5aa6",
+    "term": "zażywać",
+    "translation": "взять",
+    "learned": false
+  },
+  {
+    "id": "760bcb48-1c44-49bf-ac30-30925ff1b6e7",
+    "term": "tarcza",
+    "translation": "щит",
+    "learned": false
+  },
+  {
+    "id": "c7993916-3764-474e-938a-39c070113742",
+    "term": "szczyt",
+    "translation": "пик",
+    "learned": false
+  },
+  {
+    "id": "b671a62b-b802-42e1-a4e0-54c7fbbd1682",
+    "term": "dorożka",
+    "translation": "такси",
+    "learned": false
+  },
+  {
+    "id": "d0d0594a-312f-4595-a5f2-8eb61e4480c6",
+    "term": "statek",
+    "translation": "корабль",
+    "learned": false
+  },
+  {
+    "id": "be1403f2-10f1-4abf-af1e-e038ccbf16b7",
+    "term": "budyń",
+    "translation": "пудинг",
+    "learned": false
+  },
+  {
+    "id": "28e300ab-2c47-4f7c-a945-427a3d42b55e",
+    "term": "wspaniałe",
+    "translation": "отличный",
+    "learned": false
+  },
+  {
     "id": "83801be3-b813-4e02-9000-337208929c17",
     "term": "kelner",
     "translation": "официант",

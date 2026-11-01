@@ -670,7 +670,6 @@ function renderTask4() {
       </div>
       <div class="actions">
         <button id="undo" class="btn ghost" type="button">Стереть</button>
-        <button id="check" class="btn primary" type="button">Проверить</button>
       </div>
       <p id="feedback" class="feedback"></p>
     </div>`;
@@ -701,6 +700,13 @@ function renderTask4() {
       built.push({ i, ch: letters[i] });
       paintBuild();
       feedback.textContent = "";
+      if (built.length === letters.length) {
+        feedback.className = "feedback ok";
+        feedback.textContent = "Верно";
+        els.taskRoot.querySelectorAll("#letters .letter").forEach((letter) => (letter.disabled = true));
+        document.getElementById("undo").disabled = true;
+        setTimeout(nextInTask, 450);
+      }
     });
   });
 
@@ -713,17 +719,6 @@ function renderTask4() {
     feedback.textContent = "";
   });
 
-  document.getElementById("check").addEventListener("click", () => {
-    const value = built.map((item) => item.ch).join("");
-    if (normalize(value) === normalize(word.term)) {
-      feedback.className = "feedback ok";
-      feedback.textContent = "Верно";
-      setTimeout(nextInTask, 450);
-    } else {
-      feedback.className = "feedback bad";
-      feedback.textContent = "Пока не совпадает, попробуйте ещё";
-    }
-  });
 }
 
 function scramble(term) {
@@ -738,10 +733,6 @@ function scramble(term) {
   return mixed;
 }
 
-function normalize(value) {
-  return value.replaceAll("␣", " ").trim();
-}
-
 async function finishSession() {
   if (session.mode === "unlearned") {
     const ids = new Set(session.items.map((w) => w.id));
@@ -753,14 +744,14 @@ async function finishSession() {
   els.taskTitle.textContent = "Готово";
   els.taskRoot.innerHTML = `
     <div class="center-card done-card">
-      <h2>${session.mode === "learned" ? "Повтор завершён" : "Слова выучены"}</h2>
+      <h2>Все задания выполнены</h2>
       <p class="lead">${
         session.mode === "learned"
           ? "Эти слова остаются во вкладке выученных."
           : "Они перенесены во вкладку «Выученные». Их можно повторить позже."
       }</p>
       <div class="actions">
-        <button id="back-home" class="btn primary" type="button">К списку</button>
+        <button id="back-home" class="btn primary" type="button">Выйти из тренажёра</button>
       </div>
     </div>`;
   document.getElementById("back-home").addEventListener("click", () => {
