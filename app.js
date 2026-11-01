@@ -19,6 +19,9 @@ const els = {
   learnedCount: document.getElementById("learned-count"),
   learnBtn: document.getElementById("learn-btn"),
   learnSelectedBtn: document.getElementById("learn-selected-btn"),
+  bulkActionsWrap: document.getElementById("bulk-actions-wrap"),
+  bulkActionsBtn: document.getElementById("bulk-actions-btn"),
+  bulkActionsMenu: document.getElementById("bulk-actions-menu"),
   countMenu: document.getElementById("count-menu"),
   hint: document.getElementById("list-hint"),
   list: document.getElementById("word-list"),
@@ -183,17 +186,24 @@ function byTab(kind) {
   return words.filter((w) => (kind === "learned" ? w.learned : !w.learned));
 }
 
-function renderHome() {
-  const current = byTab(tab);
+function updateSelectedControls(current = byTab(tab)) {
   const selectedCurrent = current.filter((word) => selectedWordIds.has(word.id));
-  els.unlearnedCount.textContent = byTab("unlearned").length;
-  els.learnedCount.textContent = byTab("learned").length;
-  els.learnBtn.textContent = tab === "learned" ? "Повторить" : "Учить слова";
-  els.learnBtn.disabled = current.length === 0;
   els.learnSelectedBtn.disabled = selectedCurrent.length === 0;
   els.learnSelectedBtn.textContent = selectedCurrent.length
     ? `Учить отмеченные (${selectedCurrent.length})`
     : "Учить отмеченные";
+  const hasBulkActions = selectedCurrent.length > 1;
+  els.bulkActionsWrap.classList.toggle("hidden", !hasBulkActions);
+  if (!hasBulkActions) closeActionMenus();
+}
+
+function renderHome() {
+  const current = byTab(tab);
+  els.unlearnedCount.textContent = byTab("unlearned").length;
+  els.learnedCount.textContent = byTab("learned").length;
+  els.learnBtn.textContent = tab === "learned" ? "Повторить" : "Учить слова";
+  els.learnBtn.disabled = current.length === 0;
+  updateSelectedControls(current);
   els.hint.textContent =
     current.length === 0
       ? tab === "learned"
@@ -222,7 +232,23 @@ function renderHome() {
           <strong>${escapeHtml(w.term)}</strong>
           <span>${escapeHtml(w.translation)}</span>
         </div>
-        <button class="btn danger" data-del="${w.id}" type="button">Удалить</button>
+        <div class="word-actions">
+          <button
+            class="btn ghost icon-menu"
+            data-word-menu="${escapeHtml(w.id)}"
+            type="button"
+            aria-label="Действия со словом ${escapeHtml(w.term)}"
+            aria-expanded="false"
+          >☰</button>
+          <div class="action-menu hidden" data-word-actions="${escapeHtml(w.id)}" role="menu">
+            <button data-word-action="${w.learned ? "unlearned" : "learned"}" data-id="${escapeHtml(w.id)}" type="button">
+              ${w.learned ? "Перенести в невыученные" : "Перенести в выученные"}
+            </button>
+            <button class="menu-danger" data-word-action="delete" data-id="${escapeHtml(w.id)}" type="button">
+              Удалить
+            </button>
+          </div>
+        </div>
       </li>`
     )
     .join("");
@@ -272,13 +298,50 @@ els.form.addEventListener("submit", async (event) => {
   renderHome();
 });
 
-els.list.addEventListener("click", async (event) => {
-  const btn = event.target.closest("[data-del]");
-  if (!btn) return;
-  selectedWordIds.delete(btn.dataset.del);
-  words = words.filter((w) => w.id !== btn.dataset.del);
+function closeActionMenus() {
+  document.querySelectorAll(".action-menu").forEach((menu) => menu.classList.add("hidden"));
+  document.querySelectorAll("[aria-expanded='true']").forEach((button) => {
+    button.setAttribute("aria-expanded", "false");
+  });
+}
+
+function toggleMenu(button, menu) {
+  const willOpen = menu.classList.contains("hidden");
+  closeActionMenus();
+  menu.classList.toggle("hidden", !willOpen);
+  button.setAttribute("aria-expanded", String(willOpen));
+}
+
+async function applyWordAction(action, ids) {
+  const targetIds = new Set(ids);
+  if (action === "delete") {
+    const message =
+      targetIds.size === 1
+        ? "Вы уверены, что хотите удалить это слово?"
+        : `Вы уверены, что хотите удалить выбранные слова (${targetIds.size})?`;
+    if (!window.confirm(message)) return;
+    words = words.filter((word) => !targetIds.has(word.id));
+    targetIds.forEach((id) => selectedWordIds.delete(id));
+  } else if (action === "learned" || action === "unlearned") {
+    const learned = action === "learned";
+    words = words.map((word) => (targetIds.has(word.id) ? { ...word, learned } : word));
+    targetIds.forEach((id) => selectedWordIds.delete(id));
+  }
+  closeActionMenus();
   await saveWords();
   renderHome();
+}
+
+els.list.addEventListener("click", async (event) => {
+  const menuButton = event.target.closest("[data-word-menu]");
+  if (menuButton) {
+    const menu = els.list.querySelector(`[data-word-actions="${menuButton.dataset.wordMenu}"]`);
+    if (menu) toggleMenu(menuButton, menu);
+    return;
+  }
+  const actionButton = event.target.closest("[data-word-action]");
+  if (!actionButton) return;
+  await applyWordAction(actionButton.dataset.wordAction, [actionButton.dataset.id]);
 });
 
 els.list.addEventListener("change", (event) => {
@@ -286,7 +349,7 @@ els.list.addEventListener("change", (event) => {
   if (!checkbox) return;
   if (checkbox.checked) selectedWordIds.add(checkbox.dataset.select);
   else selectedWordIds.delete(checkbox.dataset.select);
-  renderHome();
+  updateSelectedControls();
 });
 
 els.tabs.forEach((button) => {
@@ -337,10 +400,30 @@ els.learnSelectedBtn.addEventListener("click", () => {
   if (selected.length) startSession(selected);
 });
 
+els.bulkActionsBtn.addEventListener("click", () => {
+  const selected = byTab(tab).filter((word) => selectedWordIds.has(word.id));
+  if (selected.length < 2) return;
+  const destination = tab === "learned" ? "невыученные" : "выученные";
+  els.bulkActionsMenu.innerHTML = `
+    <button data-bulk-action="${tab === "learned" ? "unlearned" : "learned"}" type="button">
+      Перенести в ${destination}
+    </button>
+    <button class="menu-danger" data-bulk-action="delete" type="button">Удалить отмеченные</button>`;
+  toggleMenu(els.bulkActionsBtn, els.bulkActionsMenu);
+});
+
+els.bulkActionsMenu.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-bulk-action]");
+  if (!button) return;
+  const ids = byTab(tab).filter((word) => selectedWordIds.has(word.id)).map((word) => word.id);
+  if (ids.length > 1) await applyWordAction(button.dataset.bulkAction, ids);
+});
+
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".learn-wrap")) {
     els.countMenu.classList.add("hidden");
   }
+  if (!event.target.closest(".word-actions, .bulk-actions-wrap")) closeActionMenus();
 });
 
 function uniqueCounts(max) {
@@ -494,18 +577,20 @@ function renderTask3() {
     <p class="prompt">Соедините слово с переводом</p>
     <div class="match-board">
       <div class="match-col" id="left-col">
+        <p class="match-heading">Слово</p>
         ${left
           .map(
             (w) =>
-              `<button class="match-item" data-side="left" data-id="${w.id}" type="button">${escapeHtml(w.translation)}</button>`
+              `<button class="match-item" data-side="left" data-id="${w.id}" type="button">${escapeHtml(w.term)}</button>`
           )
           .join("")}
       </div>
       <div class="match-col" id="right-col">
+        <p class="match-heading">Перевод</p>
         ${right
           .map(
             (w) =>
-              `<button class="match-item" data-side="right" data-id="${w.id}" type="button">${escapeHtml(w.term)}</button>`
+              `<button class="match-item" data-side="right" data-id="${w.id}" type="button">${escapeHtml(w.translation)}</button>`
           )
           .join("")}
       </div>

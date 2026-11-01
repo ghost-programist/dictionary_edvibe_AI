@@ -194,6 +194,60 @@ input {
   position: relative;
 }
 
+.bulk-actions-wrap,
+.word-actions {
+  position: relative;
+}
+
+.menu-trigger {
+  white-space: nowrap;
+}
+
+.icon-menu {
+  width: 42px;
+  padding: 10px;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.action-menu {
+  position: absolute;
+  z-index: 6;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 230px;
+  overflow: hidden;
+  background: #10261f;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.bulk-actions-wrap .action-menu {
+  left: 0;
+  right: auto;
+}
+
+.action-menu button {
+  display: block;
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.action-menu button:hover,
+.action-menu button:focus-visible {
+  background: var(--panel-2);
+}
+
+.action-menu .menu-danger {
+  color: var(--danger);
+}
+
 .count-menu {
   position: absolute;
   top: calc(100% + 8px);
@@ -417,6 +471,16 @@ input {
   display: grid;
   gap: 8px;
   align-content: start;
+}
+
+.match-heading {
+  margin: 0 0 2px;
+  color: var(--accent-2);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .letters {
