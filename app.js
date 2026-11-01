@@ -691,10 +691,16 @@ function renderTask4() {
     btn.addEventListener("click", () => {
       const i = Number(btn.dataset.i);
       if (used[i]) return;
+      if (letters[i] !== [...word.term][built.length]) {
+        feedback.className = "feedback bad";
+        feedback.textContent = "Эта буква не подходит для следующей позиции";
+        return;
+      }
       used[i] = true;
       btn.classList.add("used");
       built.push({ i, ch: letters[i] });
       paintBuild();
+      feedback.textContent = "";
     });
   });
 
